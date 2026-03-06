@@ -538,10 +538,16 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
             document.getElementById(pageId).style.display = 'block';
+            
+            // Load backup data when visiting backup-status
+            if (pageId === 'backup-status') {
+                loadBackupData();
+            }
         }
         
-        // Load backup status
-        fetch('.backup.json')
+        // Load backup data
+        function loadBackupData() {
+            fetch('.backup.json')
             .then(r => r.json())
             .then(data => {
                 if (!Array.isArray(data)) data = [data];
@@ -593,6 +599,10 @@
             .catch(() => {
                 document.getElementById('backup-history').innerHTML = '<p class="empty-state">Could not load backup data</p>';
             });
+        }
+        
+        // Load backup data on page load
+        loadBackupData();
     </script>
 </body>
 </html>
