@@ -13,12 +13,12 @@ echo "=== Backup started: $TIMESTAMP ===" >> "$LOGFILE"
 
 # Add all changes
 git add -A >> "$LOGFILE" 2>&1
-ADD_OUTPUT=$(git add -A 2>&1)
 
 # Check if there are changes to commit
 if git diff --cached --quiet; then
     MESSAGE="No changes to commit"
     echo "$TIMESTAMP: $MESSAGE" >> "$LOGFILE"
+    STATUS="no-change"
 else
     COMMIT_MSG="Backup: $(date '+%Y-%m-%d %H:%M')"
     COMMIT_OUTPUT=$(git commit -m "$COMMIT_MSG" 2>&1)
@@ -38,31 +38,42 @@ fi
 
 echo "" >> "$LOGFILE"
 
-# Write JSON log for dashboard
-# Read existing JSON or create empty array
-if [ -f "$JSONLOG" ]; then
-    JSON_DATA=$(cat "$JSONLOG")
-else
-    JSON_DATA="[]"
-fi
+# Write to JSON log (maintain array)
+python3 << PYTHON
+import json
+import os
+from datetime import datetime, timedelta
+
+JSONLOG = "$JSONLOG"
+TIMESTAMP = "$TIMESTAMP"
+STATUS = "$STATUS"
+MESSAGE = """$MESSAGE""".replace('"', '\\"')
+
+# Read existing data
+if os.path.exists(JSONLOG):
+    try:
+        with open(JSONLOG, 'r') as f:
+            data = json.load(f)
+        if not isinstance(data, list):
+            data = [data]
+    except:
+        data = []
+else:
+    data = []
 
 # Add new entry
-NEW_ENTRY="{\"timestamp\":\"$TIMESTAMP\",\"status\":\"$STATUS\",\"message\":\"$MESSAGE\"}"
+data.append({
+    "timestamp": TIMESTAMP,
+    "status": STATUS,
+    "message": MESSAGE
+})
 
-# Remove trailing ], add new entry, close
-echo "$JSON_DATA" | sed 's/\]/,\n/' | sed "s/\]/$NEW_ENTRY]/" > "$JSONLOG.tmp"
-echo "$NEW_ENTRY" > "$JSONLOG"
+# Keep only last 30 entries (last 24 hours)
+data = data[-30:]
 
-# Keep only last 30 entries
-python3 -c "
-import json
-try:
-    with open('$JSONLOG', 'r') as f:
-        data = json.load(f)
-    if isinstance(data, list):
-        data = data[-30:]
-        with open('$JSONLOG', 'w') as f:
-            json.dump(data, f)
-except:
-    pass
-" 2>/dev/null
+# Write back
+with open(JSONLOG, 'w') as f:
+    json.dump(data, f, indent=2)
+
+print(f"Logged backup: {STATUS}")
+PYTHON
