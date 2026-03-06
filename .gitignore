@@ -1,0 +1,11 @@
+# OpenClaw (sensitive)
+.openclaw/
+.clawhub/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+*.tmp
+*.log
