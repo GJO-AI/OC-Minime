@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OC-Minime Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: #16213e;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #0f3460;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            color: #e94560;
+        }
+        
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .container {
+            display: flex;
+            min-height: calc(100vh - 60px);
+        }
+        
+        .sidebar {
+            width: 220px;
+            background: #16213e;
+            padding: 20px 0;
+            border-right: 1px solid #0f3460;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+        
+        .sidebar-title {
+            padding: 0 20px 10px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #e94560;
+            font-weight: 600;
+        }
+        
+        .sidebar-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #aaa;
+        }
+        
+        .sidebar-item:hover {
+            background: #0f3460;
+            color: #fff;
+        }
+        
+        .sidebar-item.active {
+            background: #0f3460;
+            color: #fff;
+            border-left: 3px solid #e94560;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: #16213e;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .tab:hover {
+            background: #0f3460;
+            color: #fff;
+        }
+        
+        .tab.active {
+            background: #0f3460;
+            color: #fff;
+            border-bottom: 2px solid #e94560;
+        }
+        
+        .tab-content {
+            display: none;
+            background: #16213e;
+            border-radius: 0 8px 8px 8px;
+            padding: 30px;
+            min-height: 400px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tab-content h2 {
+            margin-bottom: 20px;
+            color: #e94560;
+        }
+        
+        .card {
+            background: #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .card h3 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .card p {
+            color: #aaa;
+            line-height: 1.6;
+        }
+        
+        .status-card {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .status-item {
+            background: #0f3460;
+            padding: 15px 25px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .status-item .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .status-item .label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .empty-state {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 OC-Minime Dashboard</h1>
+        <div class="status">
+            <span class="status-dot"></span>
+            <span>Online</span>
+            <span>•</span>
+            <span id="clock"></span>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Home</div>
+                <div class="sidebar-item active" data-page="morning-brief">☀️ Morning Brief</div>
+                <div class="sidebar-item" data-page="self-improvement">📈 Self Improvement</div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-title">Hobbies</div>
+                <div class="sidebar-item" data-page="bee-keeping">🐝 Bee Keeping</div>
+                <div class="sidebar-item" data-page="gardening">🌱 Gardening</div>
+                <div class="sidebar-item" data-page="hydroponics">💧 Hydroponics</div>
+                <div class="sidebar-item" data-page="iot">📡 IOT</div>
+                <div class="sidebar-item" data-page="tessie">🎵 Tessie</div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-title">Reports</div>
+                <div class="sidebar-item" data-page="backup-status">💾 Backup Status</div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" data-tab="home">Home</button>
+                <button class="tab" data-tab="shared">Shared</button>
+                <button class="tab" data-tab="tbd1">TBD1</button>
+                <button class="tab" data-tab="tbd2">TBD2</button>
+                <button class="tab" data-tab="tbd3">TBD3</button>
+                <button class="tab" data-tab="tbd4">TBD4</button>
+                <button class="tab" data-tab="tbd5">TBD5</button>
+                <button class="tab" data-tab="tbd6">TBD6</button>
+                <button class="tab" data-tab="tbd7">TBD7</button>
+                <button class="tab" data-tab="hobbies">Hobbies</button>
+                <button class="tab" data-tab="reports">Reports</button>
+            </div>
+            
+            <div id="home" class="tab-content active">
+                <h2>🏠 Home</h2>
+                <div class="empty-state">Welcome to OC-Minime Dashboard</div>
+            </div>
+            
+            <div id="shared" class="tab-content">
+                <h2>👥 Shared</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="tbd1" class="tab-content">
+                <h2>TBD1</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="tbd2" class="tab-content">
+                <h2>TBD2</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="tbd3" class="tab-content">
+                <h2>TBD3</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="tbd4" class="tab-content">
+                <h2>TBD4</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="tbd5" class="tab-content">
+                <h2>TBD5</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="tbd6" class="tab-content">
+                <h2>TBD6</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="tbd7" class="tab-content">
+                <h2>TBD7</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="hobbies" class="tab-content">
+                <h2>🎯 Hobbies</h2>
+                <div class="empty-state">Select a hobby from the sidebar</div>
+            </div>
+            
+            <div id="reports" class="tab-content">
+                <h2>📊 Reports</h2>
+                <div class="empty-state">Select a report from the sidebar</div>
+            </div>
+            
+            <!-- Dynamic Pages -->
+            <div id="morning-brief" class="tab-content" style="display: none;">
+                <h2>☀️ Morning Brief</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="self-improvement" class="tab-content" style="display: none;">
+                <h2>📈 Self Improvement</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="bee-keeping" class="tab-content" style="display: none;">
+                <h2>🐝 Bee Keeping</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="gardening" class="tab-content" style="display: none;">
+                <h2>🌱 Gardening</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="hydroponics" class="tab-content" style="display: none;">
+                <h2>💧 Hydroponics</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="iot" class="tab-content" style="display: none;">
+                <h2>📡 IOT</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="tessie" class="tab-content" style="display: none;">
+                <h2>🎵 Tessie</h2>
+                <div class="empty-state">Coming soon...</div>
+            </div>
+            
+            <div id="backup-status" class="tab-content" style="display: none;">
+                <h2>💾 Backup Status</h2>
+                <div class="status-card">
+                    <div class="status-item">
+                        <div class="value" id="last-backup">--</div>
+                        <div class="label">Last Backup</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="value" id="backup-count">0</div>
+                        <div class="label">Total Backups</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="value" style="color: #00ff88;">●</div>
+                        <div class="label">Status</div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <div class="card">
+                        <h3>Recent Activity</h3>
+                        <p id="backup-log">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).style.display = 'block';
+            });
+        });
+        
+        // Sidebar switching
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                const page = item.dataset.page;
+                if (page) {
+                    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                    document.getElementById(page).style.display = 'block';
+                }
+            });
+        });
+        
+        // Load backup status
+        fetch('.backup.log')
+            .then(r => r.text())
+            .then(log => {
+                const lines = log.trim().split('\n').filter(l => l.includes('Backup successful'));
+                document.getElementById('backup-count').textContent = lines.length;
+                if (lines.length > 0) {
+                    const last = lines[lines.length - 1].split(': ')[0].replace('=== Backup started: ', '');
+                    document.getElementById('last-backup').textContent = last;
+                }
+                document.getElementById('backup-log').textContent = log || 'No backup history';
+            })
+            .catch(() => {
+                document.getElementById('backup-log').textContent = 'Could not load backup log';
+            });
+    </script>
+</body>
+</html>
