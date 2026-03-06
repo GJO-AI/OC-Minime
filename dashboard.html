@@ -195,6 +195,37 @@
             text-align: center;
             padding: 50px;
         }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            padding: 10px;
+        }
+        
+        .menu-card {
+            background: #0f3460;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .menu-card:hover {
+            background: #1a4a7a;
+            transform: translateY(-5px);
+        }
+        
+        .menu-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .menu-label {
+            font-size: 1rem;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -214,15 +245,6 @@
                 <div class="sidebar-title">Home</div>
                 <div class="sidebar-item active" data-page="morning-brief">☀️ Morning Brief</div>
                 <div class="sidebar-item" data-page="self-improvement">📈 Self Improvement</div>
-            </div>
-            
-            <div class="sidebar-section">
-                <div class="sidebar-title">Hobbies</div>
-                <div class="sidebar-item" data-page="bee-keeping">🐝 Bee Keeping</div>
-                <div class="sidebar-item" data-page="gardening">🌱 Gardening</div>
-                <div class="sidebar-item" data-page="hydroponics">💧 Hydroponics</div>
-                <div class="sidebar-item" data-page="iot">📡 IOT</div>
-                <div class="sidebar-item" data-page="tessie">🎵 Tessie</div>
             </div>
             
             <div class="sidebar-section">
@@ -293,7 +315,28 @@
             
             <div id="hobbies" class="tab-content">
                 <h2>🎯 Hobbies</h2>
-                <div class="empty-state">Select a hobby from the sidebar</div>
+                <div class="menu-grid">
+                    <div class="menu-card" onclick="showPage('bee-keeping')">
+                        <div class="menu-icon">🐝</div>
+                        <div class="menu-label">Bee Keeping</div>
+                    </div>
+                    <div class="menu-card" onclick="showPage('gardening')">
+                        <div class="menu-icon">🌱</div>
+                        <div class="menu-label">Gardening</div>
+                    </div>
+                    <div class="menu-card" onclick="showPage('hydroponics')">
+                        <div class="menu-icon">💧</div>
+                        <div class="menu-label">Hydroponics</div>
+                    </div>
+                    <div class="menu-card" onclick="showPage('iot')">
+                        <div class="menu-icon">📡</div>
+                        <div class="menu-label">IOT</div>
+                    </div>
+                    <div class="menu-card" onclick="showPage('tessie')">
+                        <div class="menu-icon">🎵</div>
+                        <div class="menu-label">Tessie</div>
+                    </div>
+                </div>
             </div>
             
             <div id="reports" class="tab-content">
@@ -389,11 +432,17 @@
                 item.classList.add('active');
                 const page = item.dataset.page;
                 if (page) {
-                    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-                    document.getElementById(page).style.display = 'block';
+                    showPage(page);
                 }
             });
         });
+        
+        // Show page function
+        function showPage(pageId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.getElementById(pageId).style.display = 'block';
+        }
         
         // Load backup status
         fetch('.backup.log')
