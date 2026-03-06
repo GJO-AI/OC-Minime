@@ -247,10 +247,6 @@
                 <div class="sidebar-item" data-page="self-improvement">📈 Self Improvement</div>
             </div>
             
-            <div class="sidebar-section">
-                <div class="sidebar-title">Reports</div>
-                <div class="sidebar-item" data-page="backup-status">💾 Backup Status</div>
-            </div>
         </div>
         
         <div class="main-content">
@@ -341,7 +337,12 @@
             
             <div id="reports" class="tab-content">
                 <h2>📊 Reports</h2>
-                <div class="empty-state">Select a report from the sidebar</div>
+                <div class="menu-grid">
+                    <div class="menu-card" onclick="showPage('backup-status')">
+                        <div class="menu-icon">💾</div>
+                        <div class="menu-label">Backup Status</div>
+                    </div>
+                </div>
             </div>
             
             <!-- Dynamic Pages -->
