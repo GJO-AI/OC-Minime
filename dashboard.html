@@ -241,12 +241,34 @@
     
     <div class="container">
         <div class="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-title">Home</div>
-                <div class="sidebar-item active" data-page="morning-brief">☀️ Morning Brief</div>
-                <div class="sidebar-item" data-page="self-improvement">📈 Self Improvement</div>
+            <!-- Home Menu -->
+            <div id="menu-home" class="sidebar-menu">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Home</div>
+                    <div class="sidebar-item active" data-page="morning-brief">☀️ Morning Brief</div>
+                    <div class="sidebar-item" data-page="self-improvement">📈 Self Improvement</div>
+                </div>
             </div>
             
+            <!-- Hobbies Menu -->
+            <div id="menu-hobbies" class="sidebar-menu" style="display: none;">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Hobbies</div>
+                    <div class="sidebar-item" data-page="bee-keeping">🐝 Bee Keeping</div>
+                    <div class="sidebar-item" data-page="gardening">🌱 Gardening</div>
+                    <div class="sidebar-item" data-page="hydroponics">💧 Hydroponics</div>
+                    <div class="sidebar-item" data-page="iot">📡 IOT</div>
+                    <div class="sidebar-item" data-page="tessie">🎵 Tessie</div>
+                </div>
+            </div>
+            
+            <!-- Reports Menu -->
+            <div id="menu-reports" class="sidebar-menu" style="display: none;">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Reports</div>
+                    <div class="sidebar-item" data-page="backup-status">💾 Backup Status</div>
+                </div>
+            </div>
         </div>
         
         <div class="main-content">
@@ -422,15 +444,37 @@
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
                 tab.classList.add('active');
-                document.getElementById(tab.dataset.tab).style.display = 'block';
+                const tabId = tab.dataset.tab;
+                document.getElementById(tabId).style.display = 'block';
+                
+                // Switch sidebar menu
+                switchSidebarMenu(tabId);
             });
         });
         
+        // Switch sidebar menu based on tab
+        function switchSidebarMenu(tabId) {
+            document.querySelectorAll('.sidebar-menu').forEach(m => m.style.display = 'none');
+            const menuMap = {
+                'home': 'menu-home',
+                'hobbies': 'menu-hobbies',
+                'reports': 'menu-reports'
+            };
+            if (menuMap[tabId]) {
+                document.getElementById(menuMap[tabId]).style.display = 'block';
+            }
+        }
+        
         // Sidebar switching
         document.querySelectorAll('.sidebar-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            item.addEventListener('click', (e) => {
+                // Update active state in current menu
+                const parentMenu = e.target.closest('.sidebar-menu');
+                if (parentMenu) {
+                    parentMenu.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                }
                 item.classList.add('active');
+                
                 const page = item.dataset.page;
                 if (page) {
                     showPage(page);
