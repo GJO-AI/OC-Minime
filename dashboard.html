@@ -226,6 +226,55 @@
             font-size: 1rem;
             color: #fff;
         }
+        
+        /* Backup History Table */
+        .backup-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .backup-table th,
+        .backup-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #0f3460;
+        }
+        
+        .backup-table th {
+            background: #0f3460;
+            color: #e94560;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        
+        .backup-table tr:hover {
+            background: #1a2a4a;
+        }
+        
+        .backup-table .status-success {
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        .backup-table .status-error {
+            color: #ff4757;
+            font-weight: bold;
+        }
+        
+        .backup-table .status-no-change {
+            color: #888;
+            font-style: italic;
+        }
+        
+        .error-row {
+            background: rgba(255, 71, 87, 0.1);
+        }
+        
+        .error-row:hover {
+            background: rgba(255, 71, 87, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -404,26 +453,28 @@
             </div>
             
             <div id="backup-status" class="tab-content" style="display: none;">
-                <h2>💾 Backup Status</h2>
+                <h2>💾 Backup Status - Last 24 Hours</h2>
                 <div class="status-card">
                     <div class="status-item">
-                        <div class="value" id="last-backup">--</div>
+                        <div class="value" id="last-backup-time">--</div>
                         <div class="label">Last Backup</div>
                     </div>
                     <div class="status-item">
-                        <div class="value" id="backup-count">0</div>
-                        <div class="label">Total Backups</div>
+                        <div class="value" id="total-backups-24h">0</div>
+                        <div class="label">Backups (24h)</div>
                     </div>
                     <div class="status-item">
-                        <div class="value" style="color: #00ff88;">●</div>
-                        <div class="label">Status</div>
+                        <div class="value" id="success-count" style="color: #00ff88;">0</div>
+                        <div class="label">Successful</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="value" id="error-count" style="color: #ff4757;">0</div>
+                        <div class="label">Errors</div>
                     </div>
                 </div>
                 <div style="margin-top: 20px;">
-                    <div class="card">
-                        <h3>Recent Activity</h3>
-                        <p id="backup-log">Loading...</p>
-                    </div>
+                    <h3 style="margin-bottom: 15px;">Backup History</h3>
+                    <div id="backup-history">Loading...</div>
                 </div>
             </div>
         </div>
@@ -490,19 +541,57 @@
         }
         
         // Load backup status
-        fetch('.backup.log')
-            .then(r => r.text())
-            .then(log => {
-                const lines = log.trim().split('\n').filter(l => l.includes('Backup successful'));
-                document.getElementById('backup-count').textContent = lines.length;
-                if (lines.length > 0) {
-                    const last = lines[lines.length - 1].split(': ')[0].replace('=== Backup started: ', '');
-                    document.getElementById('last-backup').textContent = last;
+        fetch('.backup.json')
+            .then(r => r.json())
+            .then(data => {
+                if (!Array.isArray(data)) data = [data];
+                
+                // Filter last 24 hours
+                const now = new Date();
+                const twenty4h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                
+                const recentBackups = data.filter(b => {
+                    const bTime = new Date(b.timestamp);
+                    return bTime >= twenty4h;
+                });
+                
+                // Update stats
+                const successCount = recentBackups.filter(b => b.status === 'success').length;
+                const errorCount = recentBackups.filter(b => b.status === 'error').length;
+                
+                document.getElementById('total-backups-24h').textContent = recentBackups.length;
+                document.getElementById('success-count').textContent = successCount;
+                document.getElementById('error-count').textContent = errorCount;
+                
+                if (recentBackups.length > 0) {
+                    const last = recentBackups[recentBackups.length - 1];
+                    document.getElementById('last-backup-time').textContent = new Date(last.timestamp).toLocaleString();
                 }
-                document.getElementById('backup-log').textContent = log || 'No backup history';
+                
+                // Build table
+                if (recentBackups.length === 0) {
+                    document.getElementById('backup-history').innerHTML = '<p class="empty-state">No backups in last 24 hours</p>';
+                } else {
+                    let html = '<table class="backup-table"><thead><tr><th>Time</th><th>Status</th><th>Message</th></tr></thead><tbody>';
+                    
+                    // Show newest first
+                    recentBackups.reverse().forEach(backup => {
+                        const time = new Date(backup.timestamp).toLocaleString();
+                        const statusClass = backup.status === 'success' ? 'status-success' : 
+                                          backup.status === 'error' ? 'status-error' : 'status-no-change';
+                        const statusText = backup.status === 'success' ? '✓ Success' : 
+                                         backup.status === 'error' ? '✗ Error' : '-';
+                        const rowClass = backup.status === 'error' ? 'error-row' : '';
+                        
+                        html += `<tr class="${rowClass}"><td>${time}</td><td class="${statusClass}">${statusText}</td><td>${backup.message}</td></tr>`;
+                    });
+                    
+                    html += '</tbody></table>';
+                    document.getElementById('backup-history').innerHTML = html;
+                }
             })
             .catch(() => {
-                document.getElementById('backup-log').textContent = 'Could not load backup log';
+                document.getElementById('backup-history').innerHTML = '<p class="empty-state">Could not load backup data</p>';
             });
     </script>
 </body>
