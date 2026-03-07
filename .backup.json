@@ -1,1 +1,12 @@
-{"timestamp":"2026-03-06 17:31:55","status":"success","message":"Backup successful"}
+[
+  {
+    "timestamp": "2026-03-06 17:31:55",
+    "status": "success",
+    "message": "Backup successful"
+  },
+  {
+    "timestamp": "2026-03-06 17:32:27",
+    "status": "success",
+    "message": "Backup successful"
+  }
+]
