@@ -1,0 +1,196 @@
+# Trading Bot Workflow
+# Example: News → Analysis → Trade → Newsletter
+
+workflow:
+  id: daily-trading-routine
+  name: Daily Trading Routine
+  description: Evaluate markets, trade, and publish newsletter
+  
+  # Global context shared across tasks
+  context:
+    market: US
+    risk_level: moderate
+    max_position: 10000
+  
+  tasks:
+    # Task 1: Market Research
+    - id: market-scan
+      name: Scan Markets
+      description: Evaluate news and market trends
+      type: research
+      
+      # Which agent should handle this
+      agent:
+        profile: market-researcher
+        capabilities: [research, market-analysis, news-evaluation]
+      
+      # Prompt template
+      prompt: |
+        Evaluate today's market conditions:
+        - Scan financial news for {{market}} markets
+        - Analyze major indices (S&P 500, NASDAQ, DOW)
+        - Identify trending sectors
+        - Flag any major events or earnings
+        
+        Output a brief market summary with:
+        - Market sentiment (bullish/bearish/neutral)
+        - Key sectors to watch
+        - Risk level (low/medium/high)
+        - Any immediate concerns
+      
+      # Output configuration
+      output:
+        format: json
+        schema:
+          sentiment: string
+          sectors: array
+          risk_level: string
+          concerns: string
+      
+      # No dependencies - starts immediately
+      dependencies: []
+      
+      # Time limit
+      timeout: 600  # 10 minutes
+      
+      # Retry on failure
+      retry:
+        max_attempts: 2
+        backoff: exponential
+
+    # Task 2: Stock Selection (depends on Task 1)
+    - id: select-stocks
+      name: Select Stocks to Trade
+      description: Based on market scan, pick stocks
+      type: analysis
+      
+      agent:
+        profile: stock-analyst
+        capabilities: [analysis, stock-picking, technical-analysis]
+      
+      prompt: |
+        Based on the market analysis:
+        {{market-scan.output}}
+        
+        Select 3-5 stocks to trade today:
+        - Match the {{market-scan.output.sentiment}} sentiment
+        - Focus on sectors: {{market-scan.output.sectors}}
+        - Consider risk level: {{market-scan.output.risk_level}}
+        
+        For each stock:
+        - Ticker symbol
+        - Entry price target
+        - Exit price target
+        - Position size (max ${{max_position}})
+        - Rationale
+      
+      output:
+        format: json
+        schema:
+          picks:
+            - ticker: string
+              entry: number
+              exit: number
+              position: number
+              rationale: string
+      
+      # Wait for market scan
+      dependencies: [market-scan]
+      
+      timeout: 300
+
+    # Task 3: Execute Trades (depends on Task 2)
+    - id: execute-trades
+      name: Execute Trades
+      description: Place buy orders for selected stocks
+      type: trading
+      
+      agent:
+        profile: trader
+        capabilities: [trading, api-integration, risk-management]
+      
+      prompt: |
+        Execute trades for selected stocks:
+        {{select-stocks.output.picks}}
+        
+        For each stock:
+        1. Verify current price is near entry target
+        2. Check account balance
+        3. Place limit buy order at entry price
+        4. Set stop-loss at -5%
+        5. Confirm order execution
+        
+        Report:
+        - Which orders were placed
+        - Fill prices
+        - Total capital deployed
+        - Any issues or rejections
+      
+      output:
+        format: json
+        schema:
+          orders_placed: array
+          capital_deployed: number
+          status: string
+      
+      dependencies: [select-stocks]
+      
+      timeout: 300
+      
+      # This task requires confirmation
+      require_approval: true
+
+    # Task 4: Newsletter (depends on Task 1 and 3)
+    - id: publish-newsletter
+      name: Publish Newsletter
+      description: Create and publish trading newsletter
+      type: content
+      
+      agent:
+        profile: content-writer
+        capabilities: [writing, publishing, newsletter]
+      
+      prompt: |
+        Create a trading newsletter for subscribers:
+        
+        ## Market Summary
+        {{market-scan.output}}
+        
+        ## Today's Trades
+        {{execute-trades.output}}
+        
+        ## Format
+        - Engaging headline
+        - Brief market overview (2-3 sentences)
+        - Today's trades with rationale
+        - Risk disclaimer
+        - CTA to subscribe/upgrade
+        
+        Publish to:
+        - Email list
+        - Discord channel
+        - Blog
+      
+      output:
+        format: markdown
+        publish_to:
+          - email
+          - discord
+          - blog
+      
+      # Wait for both market scan and trades
+      dependencies: [market-scan, execute-trades]
+      
+      timeout: 600
+
+  # Error handling
+  on_failure:
+    action: notify
+    to: admin
+    message: "Workflow {{workflow.id}} failed at task {{failed_task.id}}"
+
+  # Success handling  
+  on_success:
+    action: notify
+    to: admin
+    message: "Workflow {{workflow.id}} completed successfully"
